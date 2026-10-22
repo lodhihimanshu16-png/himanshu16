@@ -3,6 +3,11 @@
 LearnHub is a small e-learning website. You can browse courses, read lessons, take quizzes, track progress, and enroll.
 It has a backend (C#, .NET 8) and a frontend (React). You run both at the same time.
 
+## Day 4 hands-on lab
+
+Start with `FEATURE.md`, then `HANDS-ON.md`. FEATURE.md says what we build (paid courses). HANDS-ON.md says how we build it with Claude, step by step.
+The take-home exercise is still `EXERCISE.md` (Bookmarks).
+
 ## What you need installed
 
 1. .NET 8 SDK: https://dotnet.microsoft.com/download/dotnet/8.0
@@ -52,6 +57,9 @@ Open http://localhost:5080/api/courses in your browser. You should see a list of
 | `frontend/src/components` | Small shared pieces (top bar, course card) |
 | `frontend/src/api.js` | All calls from the website to the backend |
 | `.claude/skills` | Skills: step-by-step guides that Claude Code follows for common jobs |
+| `FEATURE.md` | The spec for the Day 4 lab (what we build) |
+| `HANDS-ON.md` | The Day 4 lab script (how we build it with Claude) |
+| `hands-on` | Trainer notes and backup answers for the lab |
 | `HOOKS-COMMANDS-AGENTS.md` | Reference: examples of hooks, commands and agents |
 
 Data is kept in memory. When you stop the backend, enrollments are gone.
