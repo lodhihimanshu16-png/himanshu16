@@ -79,3 +79,9 @@ button:hover { background: var(--accent-dark); }
 /* Progress bar */
 .progress-track { background: var(--border); border-radius: 999px; height: 10px; margin: 10px 0 6px; overflow: hidden; }
 .progress-fill { background: var(--accent); height: 100%; }
+
+/* Shop */
+.card .row { align-items: center; margin: 8px 0 0; }
+.panel .row { align-items: center; }
+.data-table { border-collapse: collapse; width: 100%; }
+.data-table th, .data-table td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--border); }

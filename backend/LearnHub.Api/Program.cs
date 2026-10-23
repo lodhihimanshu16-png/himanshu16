@@ -17,4 +17,9 @@ app.MapEnrollmentEndpoints();
 app.MapQuizEndpoints();
 app.MapProgressEndpoints();
 
+app.MapCartEndpoints();
+app.MapCheckoutEndpoints();
+app.MapOrderEndpoints();
+app.MapRevenueEndpoints();
+
 app.Run();

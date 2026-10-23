@@ -16,6 +16,7 @@ public static class CourseEndpoints
                 c.Category,
                 c.Instructor,
                 c.Level,
+                c.Price,
                 LessonCount = c.Lessons.Count
             }));
 
@@ -32,6 +33,7 @@ public static class CourseEndpoints
                 course.Category,
                 course.Instructor,
                 course.Level,
+                course.Price,
                 Lessons = course.Lessons.Select(l => new
                 {
                     l.Id,

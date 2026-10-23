@@ -8,5 +8,6 @@ public class Course
     public string Category { get; set; } = "";
     public string Instructor { get; set; } = "";
     public string Level { get; set; } = "";
+    public decimal Price { get; set; }
     public List<Lesson> Lessons { get; set; } = new();
 }

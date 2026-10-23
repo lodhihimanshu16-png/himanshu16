@@ -5,6 +5,9 @@ import CourseDetailPage from './pages/CourseDetailPage.jsx'
 import MyCoursesPage from './pages/MyCoursesPage.jsx'
 import QuizPage from './pages/QuizPage.jsx'
 import ProgressPage from './pages/ProgressPage.jsx'
+import CartPage from './pages/CartPage.jsx'
+import MyOrdersPage from './pages/MyOrdersPage.jsx'
+import InstructorRevenuePage from './pages/InstructorRevenuePage.jsx'
 
 export default function App() {
   return (
@@ -17,6 +20,9 @@ export default function App() {
           <Route path="/my-courses" element={<MyCoursesPage />} />
           <Route path="/lessons/:lessonId/quiz" element={<QuizPage />} />
           <Route path="/progress" element={<ProgressPage />} />
+          <Route path="/cart" element={<CartPage />} />
+          <Route path="/orders" element={<MyOrdersPage />} />
+          <Route path="/instructor-revenue" element={<InstructorRevenuePage />} />
         </Routes>
       </main>
     </>

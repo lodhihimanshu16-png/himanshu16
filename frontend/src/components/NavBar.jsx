@@ -8,6 +8,9 @@ export default function NavBar() {
         <NavLink to="/" end>Courses</NavLink>
         <NavLink to="/my-courses">My Courses</NavLink>
         <NavLink to="/progress">My Progress</NavLink>
+        <NavLink to="/cart">Cart</NavLink>
+        <NavLink to="/orders">My Orders</NavLink>
+        <NavLink to="/instructor-revenue">Revenue</NavLink>
       </div>
     </nav>
   )

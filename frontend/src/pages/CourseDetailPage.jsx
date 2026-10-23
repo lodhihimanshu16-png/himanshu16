@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { getCourse, enroll, markLessonComplete, getProgress, getSavedName, saveName } from '../api.js'
+import { getCourse, enroll, addToCart, formatPrice, markLessonComplete, getProgress, getSavedName, saveName } from '../api.js'
 
 export default function CourseDetailPage() {
   const { id } = useParams()
@@ -36,9 +36,14 @@ export default function CourseDetailPage() {
   async function handleEnroll(e) {
     e.preventDefault()
     try {
-      await enroll(course.id, name)
+      if (course.price > 0) {
+        await addToCart(name, course.id)
+        setMessage({ type: 'ok', text: 'Added to cart.' })
+      } else {
+        await enroll(course.id, name)
+        setMessage({ type: 'ok', text: 'You are enrolled!' })
+      }
       saveName(name.trim())
-      setMessage({ type: 'ok', text: 'You are enrolled!' })
     } catch (err) {
       setMessage({ type: 'error', text: err.message })
     }
@@ -55,17 +60,18 @@ export default function CourseDetailPage() {
       <p className="meta">
         <span>{course.instructor}</span>
         <span>{course.category} · {course.level}</span>
+        <span className="tag">{formatPrice(course.price)}</span>
       </p>
 
       <form className="panel" onSubmit={handleEnroll}>
-        <h2>Enroll</h2>
+        <h2>{course.price > 0 ? 'Buy' : 'Enroll'}</h2>
         <div className="row">
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Your name"
           />
-          <button type="submit">Enroll</button>
+          <button type="submit">{course.price > 0 ? 'Add to cart' : 'Enroll'}</button>
         </div>
         {message && <p className={`message ${message.type}`}>{message.text}</p>}
       </form>
