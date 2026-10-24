@@ -46,7 +46,8 @@ A commit refreshes the "Recent commits" block below and amends it into that comm
 ## Recent commits
 
 <!-- AUTO:RECENT-COMMITS:START -->
-- (this commit) Require enrolment to review a course
+- (this commit) Add review enrolment tests
+- aab4e58 Require enrolment to review a course
 - e3d21f7 Document at-risk student selection method
 - d142ca7 Add at-risk student call list
 - 6377f64 Add learner completion and drop-off analysis
@@ -55,5 +56,4 @@ A commit refreshes the "Recent commits" block below and amends it into that comm
 - dfa2c3c Exclude refunded orders from payout report
 - 6eb2916 Add payout report tests for refunded orders
 - bd09623 Complete coupon audit report with cause, fix and test details
-- 332db4a Add coupon limit and once-per-student tests
 <!-- AUTO:RECENT-COMMITS:END -->

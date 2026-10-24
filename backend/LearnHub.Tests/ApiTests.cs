@@ -55,6 +55,26 @@ public class ApiTests : IClassFixture<CustomWebApplicationFactory>
     }
 
     [Fact]
+    public async Task Review_FromNonEnrolledStudent_ReturnsForbidden()
+    {
+        var response = await _client.PostAsJsonAsync("/api/courses/6/reviews", new { studentName = "Api Stranger", stars = 5, comment = "Great" });
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+        var body = await Json(response);
+        Assert.Equal("You must be enrolled in this course to review it.", body.GetProperty("error").GetString());
+        Assert.Equal(0, (await Json(await _client.GetAsync("/api/courses/6/reviews"))).GetArrayLength());
+    }
+
+    [Fact]
+    public async Task Review_FromEnrolledStudent_ReturnsCreated()
+    {
+        var enroll = await _client.PostAsJsonAsync("/api/enrollments", new { courseId = 1, studentName = "Api Eli" });
+        Assert.Equal(HttpStatusCode.Created, enroll.StatusCode);
+
+        var review = await _client.PostAsJsonAsync("/api/courses/1/reviews", new { studentName = "Api Eli", stars = 4, comment = "Useful" });
+        Assert.Equal(HttpStatusCode.Created, review.StatusCode);
+    }
+
+    [Fact]
     public async Task CartCheckoutAndDashboard_Flow()
     {
         await _client.PostAsJsonAsync("/api/cart", new { studentName = "Api Ben", courseId = 2 });
