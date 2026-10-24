@@ -38,3 +38,22 @@ Environment variables:
 **Frontend:** one file per page in `src/pages`, shared components in `src/components`, and every backend call goes through `src/api.js`.
 
 **MCP server:** `Tools/*` (Catalog, Shop, Student) are auto-discovered via `WithToolsFromAssembly()`. All DB access goes through `Db.QueryAsync`, which uses parameterised queries, a read-only session and a 500-row cap. Logging goes to stderr because stdout carries the protocol. Keep tools read-only. `.mcp.json` launches it with `dotnet run --project mcp-server/LearnHub.Mcp`.
+
+## Hooks
+
+A commit refreshes the "Recent commits" block below and amends it into that commit (`scripts/update-claude-md.js`). Two triggers share the script: the git hook `.githooks/post-commit` (enable once per clone with `git config core.hooksPath .githooks`) and a Claude Code PostToolUse hook in `.claude/settings.json` that fires after Claude runs `git commit`. Set `CLAUDE_MD_HOOK=1` to skip. Do not edit between the AUTO markers.
+
+## Recent commits
+
+<!-- AUTO:RECENT-COMMITS:START -->
+- (this commit) Add hooks that refresh CLAUDE.md after each commit
+- 3bb3c26 Add CLAUDE.md
+- 17b4789 Restore root user and LEARNHUB_NOW in .mcp.json
+- 0b711aa Set .mcp.json database defaults
+- af8eeb2 Register LearnHub MCP server in .mcp.json
+- a80db5a Add read-only LearnHub MCP server (.NET)
+- 93e72ab Remove MySQL Docker setup instructions
+- e389a20 Day 5: LearnHub on MySQL with 6 investigation exercises
+- 909f807 Add paid courses shop feature, shop skills and new hooks
+- a0ee6e5 Initial commit: day5-orchestration-mcp starter
+<!-- AUTO:RECENT-COMMITS:END -->
