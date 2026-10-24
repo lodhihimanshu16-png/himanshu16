@@ -46,7 +46,8 @@ A commit refreshes the "Recent commits" block below and amends it into that comm
 ## Recent commits
 
 <!-- AUTO:RECENT-COMMITS:START -->
-- (this commit) Add refund policy tests
+- (this commit) Complete refund audit report with fix and test details
+- c94c83b Add refund policy tests
 - a183400 Enforce refund policy from order creation date via RefundPolicy
 - a879dd5 Add refund policy audit report
 - b4782f0 Add hooks that refresh CLAUDE.md after each commit
@@ -55,5 +56,4 @@ A commit refreshes the "Recent commits" block below and amends it into that comm
 - 0b711aa Set .mcp.json database defaults
 - af8eeb2 Register LearnHub MCP server in .mcp.json
 - a80db5a Add read-only LearnHub MCP server (.NET)
-- 93e72ab Remove MySQL Docker setup instructions
 <!-- AUTO:RECENT-COMMITS:END -->

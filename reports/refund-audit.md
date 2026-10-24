@@ -55,15 +55,31 @@ The refund logic lives in `ShopService.RefundOrder`. Three weaknesses let these 
 
 ## Fix
 
-To be completed after the code fix and tests land.
+Fixed in commit `a183400` on branch `bugfix/refund-policy-enforcement`.
+
+- **One place for the rule.** A new file, `backend/LearnHub.Api/Services/RefundPolicy.cs`, holds the policy: 7 days, and progress below 30% on every course.
+- **Correct start date.** `ShopService.RefundOrder` now measures the 7-day window from the original purchase date (`Order.CreatedAt`), not from the date the order was last changed (`UpdatedAt`). It then asks `RefundPolicy.Evaluate` whether the refund is allowed.
+- **Matching audit report.** The MCP audit tool (`find_refund_policy_violations`, in `mcp-server/LearnHub.Mcp/Tools/ShopTools.cs`) now uses exact timestamps and each order's highest per-course progress, the same way the policy does. Before this, it used whole days and could disagree with the service.
+- **Messages unchanged.** Customers see the same refusal wording as before.
 
 ## Tests
 
-To be completed after the code fix and tests land.
+Added in commit `c94c83b`.
+
+- **Unit tests (7)**, in `backend/LearnHub.Tests/RefundPolicyTests.cs`, cover the edges of the rule: exactly 7 days is allowed, 7 days and one minute is refused, exactly 30% is refused, 29% is allowed, and a multi-course order is refused if any one course is at 30% or more.
+- **Integration tests (4)**, in `backend/LearnHub.Tests/ShopTests.cs`, check the refund service end to end. One is a regression test: an order 8 days old, whose last-updated date is bumped to today, must be refused. This test fails against the old logic and passes with the fix.
+- **Full backend suite:** 94 passed, 0 failed.
+- **Manual check against the running app:** a compliant refund succeeded (HTTP 200). A refund after 7 days and a refund at 33% progress were both refused (HTTP 400, with the expected messages). A repeat refund returned HTTP 409. Progress shown in the app matched the database for all 2,956 enrolments. The local database was restored afterwards.
 
 ## Follow-up (not applied)
 
 A database trigger that rejects refunds breaking the policy has been considered but deliberately not applied. The seed file `db/seed.sql` contains these nine historical violations, so a trigger would cause the seed to fail on load. Any trigger should be added only after the seed data is corrected.
+
+Remaining limits, stated plainly:
+
+- **The database still does not enforce the policy.** A writer that bypasses the service (a script, an import or direct SQL) can still insert a non-compliant refund. We recommend adding a database rule, or restricting write access to refunds, as a follow-up.
+- **Rounding gap.** The app shows progress rounded to whole percentages, but the refund rule uses the unrounded figure. A student at 29.5% to 29.99% therefore sees "30%" and is still refundable. No such case exists in the data today.
+- **Historical refunds not recovered.** The nine refunds in breach have not been reversed or recovered. Whether to do so is a finance decision.
 
 ## Appendix: Method
 
