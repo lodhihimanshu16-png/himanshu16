@@ -5,11 +5,13 @@
       "command": "dotnet",
       "args": ["run", "--project", "mcp-server/LearnHub.Mcp", "--no-launch-profile"],
       "env": {
-        "LEARNHUB_DB_HOST": "${LEARNHUB_DB_HOST:-127.0.0.1}",
+         "LEARNHUB_DB_HOST": "${LEARNHUB_DB_HOST:-127.0.0.1}",
+
         "LEARNHUB_DB_PORT": "${LEARNHUB_DB_PORT:-3306}",
-        "LEARNHUB_DB_USER": "${LEARNHUB_DB_USER:-root}",
-        "LEARNHUB_DB_PASSWORD": "${LEARNHUB_DB_PASSWORD}",
-        "LEARNHUB_NOW": "2026-10-01T12:00:00Z"
+
+        "LEARNHUB_DB_USER": "${LEARNHUB_DB_USER:-sa}",
+
+        "LEARNHUB_DB_PASSWORD": "${LEARNHUB_DB_PASSWORD:-Root123$}"
       }
     }
   }
