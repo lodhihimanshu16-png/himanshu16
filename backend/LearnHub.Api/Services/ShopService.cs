@@ -35,8 +35,6 @@ public class ShopService
     private const decimal BundleRate = 0.15m;
     private const int BundleMinCourses = 3;
     private const decimal InstructorShareRate = 0.70m;
-    private const int RefundDays = 7;
-    private const double RefundMaxProgressPercent = 30;
 
     private readonly LearnHubDbContext _db;
     private readonly StudentDirectory _students;
@@ -305,15 +303,11 @@ public class ShopService
         if (order is null) return (null, "Order not found.");
         if (order.Status == "Refunded") return (null, "This order was already refunded.");
         var now = _clock.UtcNow;
-        if (now - order.UpdatedAt > TimeSpan.FromDays(RefundDays))
-            return (null, $"Refunds are only possible within {RefundDays} days of the order.");
-
-        foreach (var line in order.Lines)
-        {
-            var percent = _progress.PercentFor(order.StudentId, line.CourseId);
-            if (percent >= RefundMaxProgressPercent)
-                return (null, $"You have finished {Math.Round(percent)}% of {line.Course.Title}. Refunds need progress under {RefundMaxProgressPercent}% on every course.");
-        }
+        var progress = order.Lines
+            .Select(l => (l.Course.Title, _progress.PercentFor(order.StudentId, l.CourseId)))
+            .ToList();
+        var refusal = RefundPolicy.Evaluate(order.CreatedAt, now, progress);
+        if (refusal is not null) return (null, refusal);
 
         order.Status = "Refunded";
         order.UpdatedAt = now;

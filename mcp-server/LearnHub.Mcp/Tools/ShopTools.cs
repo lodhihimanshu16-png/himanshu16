@@ -8,10 +8,11 @@ public sealed class ShopTools(Db db)
 {
     private const string RefundSql =
         @"SELECT r.id AS refund_id, r.order_id, o.student_id, r.amount, r.reason, o.created_at AS ordered_at, r.refunded_at,
-                 DATEDIFF(r.refunded_at, o.created_at) AS days_to_refund,
-                 ROUND(100 * (SELECT COUNT(*) FROM lesson_progress p JOIN order_lines ol ON ol.course_id = p.course_id
-                                WHERE ol.order_id = o.id AND p.student_id = o.student_id AND p.completed_at <= r.refunded_at)
-                       / NULLIF((SELECT COUNT(*) FROM lessons l JOIN order_lines ol ON ol.course_id = l.course_id WHERE ol.order_id = o.id), 0), 1)
+                 TIMESTAMPDIFF(HOUR, o.created_at, r.refunded_at) / 24 AS days_to_refund,
+                 (SELECT ROUND(MAX(100.0 * (SELECT COUNT(*) FROM lesson_progress p
+                                              WHERE p.course_id = ol.course_id AND p.student_id = o.student_id AND p.completed_at <= r.refunded_at)
+                                         / NULLIF((SELECT COUNT(*) FROM lessons l WHERE l.course_id = ol.course_id), 0)), 1)
+                    FROM order_lines ol WHERE ol.order_id = o.id)
                    AS percent_complete
           FROM refunds r JOIN orders o ON o.id = r.order_id";
 
@@ -48,7 +49,7 @@ public sealed class ShopTools(Db db)
     [McpServerTool(Name = "find_refund_policy_violations", ReadOnly = true),
      Description("Refunds issued more than 7 days after purchase, or when progress in the order's courses was 30% or more.")]
     public Task<List<Dictionary<string, object?>>> FindRefundViolations(int limit = 200) => db.QueryAsync(
-        "SELECT * FROM (" + RefundSql + ") x WHERE days_to_refund > 7 OR percent_complete >= 30 ORDER BY refund_id",
+        "SELECT * FROM (" + RefundSql + ") x WHERE x.refunded_at > DATE_ADD(x.ordered_at, INTERVAL 7 DAY) OR x.percent_complete >= 30 ORDER BY x.refund_id",
         limit);
 
     [McpServerTool(Name = "get_coupon_usage", ReadOnly = true), Description("Coupon stats: recorded used_count vs actual paid orders, distinct students and max_uses.")]
