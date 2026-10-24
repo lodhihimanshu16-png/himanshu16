@@ -46,7 +46,8 @@ A commit refreshes the "Recent commits" block below and amends it into that comm
 ## Recent commits
 
 <!-- AUTO:RECENT-COMMITS:START -->
-- (this commit) Add hooks that refresh CLAUDE.md after each commit
+- (this commit) Add refund policy audit report
+- b4782f0 Add hooks that refresh CLAUDE.md after each commit
 - 3bb3c26 Add CLAUDE.md
 - 17b4789 Restore root user and LEARNHUB_NOW in .mcp.json
 - 0b711aa Set .mcp.json database defaults
@@ -55,5 +56,4 @@ A commit refreshes the "Recent commits" block below and amends it into that comm
 - 93e72ab Remove MySQL Docker setup instructions
 - e389a20 Day 5: LearnHub on MySQL with 6 investigation exercises
 - 909f807 Add paid courses shop feature, shop skills and new hooks
-- a0ee6e5 Initial commit: day5-orchestration-mcp starter
 <!-- AUTO:RECENT-COMMITS:END -->
