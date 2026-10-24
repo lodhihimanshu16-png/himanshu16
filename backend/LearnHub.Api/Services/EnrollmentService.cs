@@ -32,10 +32,14 @@ public class EnrollmentService
         if (string.IsNullOrEmpty(name)) return (null, "studentName is required.");
         var course = _db.Courses.FirstOrDefault(c => c.Id == courseId);
         if (course is null) return (null, "Course not found.");
-        var student = _students.GetOrCreate(name);
-        if (_db.Enrollments.Any(e => e.StudentId == student.Id && e.CourseId == courseId))
+        // Find, not GetOrCreate, so a refused enrolment does not leave a new student row behind.
+        var existing = _students.Find(name);
+        if (existing is not null && _db.Enrollments.Any(e => e.StudentId == existing.Id && e.CourseId == courseId))
             return (null, "Already enrolled in this course.");
+        var prerequisiteError = PrerequisiteError(existing, courseId);
+        if (prerequisiteError is not null) return (null, prerequisiteError);
 
+        var student = existing ?? _students.GetOrCreate(name);
         var enrollment = new Enrollment { StudentId = student.Id, CourseId = courseId, EnrolledAt = _clock.UtcNow };
         _db.Enrollments.Add(enrollment);
         _db.SaveChanges();
@@ -48,18 +52,21 @@ public class EnrollmentService
         var course = _db.Courses.FirstOrDefault(c => c.Id == courseId);
         if (course is not null && course.Price > 0) return (null, "This course is paid. Add it to your cart and check out.");
 
-        var student = _students.Find(studentName);
-        if (course is not null)
-        {
-            var required = _db.CoursePrerequisites.Where(p => p.CourseId == courseId)
-                .Select(p => new { p.RequiresCourseId, p.RequiresCourse.Title }).ToList();
-            foreach (var req in required)
-            {
-                var done = student is not null && _progress.PercentFor(student.Id, req.RequiresCourseId) >= 100;
-                if (!done) return (null, $"Finish {req.Title} before you enroll in this course.");
-            }
-        }
         return Enroll(courseId, studentName);
+    }
+
+    /// <summary>Returns the message for the first prerequisite the student has not finished, or null if all are met.
+    /// A null student has finished nothing.</summary>
+    public string? PrerequisiteError(Student? student, int courseId)
+    {
+        var required = _db.CoursePrerequisites.Where(p => p.CourseId == courseId)
+            .Select(p => new { p.RequiresCourseId, p.RequiresCourse.Title }).ToList();
+        foreach (var req in required)
+        {
+            var done = student is not null && _progress.PercentFor(student.Id, req.RequiresCourseId) >= 100;
+            if (!done) return $"Finish {req.Title} before you enroll in this course.";
+        }
+        return null;
     }
 
     public List<EnrollmentView> GetEnrollments(string? studentName)

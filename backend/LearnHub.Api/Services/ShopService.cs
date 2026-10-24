@@ -62,7 +62,11 @@ public class ShopService
         var course = _db.Courses.FirstOrDefault(c => c.Id == courseId);
         if (course is null) return (null, "Course not found.");
         if (course.Price <= 0) return (null, "This course is free. Enroll in it directly.");
-        var student = _students.GetOrCreate(name);
+        // Find, not GetOrCreate, so a refused add does not leave a new student row behind.
+        var existing = _students.Find(name);
+        var prerequisiteError = _enrollments.PrerequisiteError(existing, courseId);
+        if (prerequisiteError is not null) return (null, prerequisiteError);
+        var student = existing ?? _students.GetOrCreate(name);
         if (_db.Enrollments.Any(e => e.StudentId == student.Id && e.CourseId == courseId)) return (null, "You already own this course.");
         if (_db.CartItems.Any(i => i.StudentId == student.Id && i.CourseId == courseId)) return (null, "Already in your cart.");
 
@@ -231,6 +235,13 @@ public class ShopService
             if (_db.Enrollments.Any(e => e.StudentId == student.Id && e.CourseId == item.CourseId))
                 return (null, $"You already own {_db.Courses.First(c => c.Id == item.CourseId).Title}. Remove it from your cart.");
 
+        // Prerequisites are checked before any order or payment is created.
+        foreach (var item in cart)
+        {
+            var prerequisiteError = _enrollments.PrerequisiteError(student, item.CourseId);
+            if (prerequisiteError is not null) return (null, prerequisiteError);
+        }
+
         var quote = BuildQuote(name, couponCode);
         if (quote.CouponRejected) return (null, quote.CouponMessage);
 
@@ -262,7 +273,13 @@ public class ShopService
         _db.CartItems.RemoveRange(cart);
         _db.SaveChanges();
 
-        foreach (var line in order.Lines) _enrollments.Enroll(line.CourseId, student.FullName);
+        foreach (var line in order.Lines)
+        {
+            var (_, enrollError) = _enrollments.Enroll(line.CourseId, student.FullName);
+            // Every line was validated above, so a refusal here is a logic bug.
+            if (enrollError is not null)
+                throw new InvalidOperationException($"Enrolment failed after checkout validation for course {line.CourseId}: {enrollError}");
+        }
 
         return (ToView(order.Id), null);
     }
