@@ -40,12 +40,14 @@ public class PayoutReportBuilder
         var wasClosed = conn.State != System.Data.ConnectionState.Open;
         if (wasClosed) conn.Open();
 
+        // Refunded orders are excluded because payouts are based on net sales (paid orders only).
         var sql = "SELECT i.id, i.full_name, o.id, ol.final_price, o.status " +
                   "FROM order_lines ol " +
                   "JOIN orders o ON o.id = ol.order_id " +
                   "JOIN courses c ON c.id = ol.course_id " +
                   "JOIN instructors i ON i.id = c.instructor_id " +
                   "WHERE o.created_at >= @from AND o.created_at < @to " +
+                  "AND o.status = 'Paid' " +
                   "ORDER BY i.full_name, o.id";
 
         var ids = new ArrayList();
