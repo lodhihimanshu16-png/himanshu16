@@ -46,7 +46,8 @@ A commit refreshes the "Recent commits" block below and amends it into that comm
 ## Recent commits
 
 <!-- AUTO:RECENT-COMMITS:START -->
-- (this commit) Enforce prerequisites on every enrolment path
+- (this commit) Add prerequisite enforcement tests
+- 83918db Enforce prerequisites on every enrolment path
 - 3785387 Add review enrolment tests
 - aab4e58 Require enrolment to review a course
 - e3d21f7 Document at-risk student selection method
@@ -55,5 +56,4 @@ A commit refreshes the "Recent commits" block below and amends it into that comm
 - 9831b88 Add coupon audit session handoff
 - 9e8ea77 Add payout reconciliation report
 - dfa2c3c Exclude refunded orders from payout report
-- 6eb2916 Add payout report tests for refunded orders
 <!-- AUTO:RECENT-COMMITS:END -->
