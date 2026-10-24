@@ -99,21 +99,7 @@ public class ShopService
     // ---- Prices: bundle and coupon ----
 
     /// <summary>Preview of the cart price. Changes nothing.</summary>
-    public PriceQuote Quote(string? studentName, string? couponCode)
-    {
-        var code = couponCode?.Trim();
-        if (!string.IsNullOrEmpty(code) && HasUsedCoupon(studentName ?? "", code))
-        {
-            var quote = BuildQuote(studentName, null);
-            if (quote.Lines.Count > 0)
-            {
-                quote.CouponRejected = true;
-                quote.CouponMessage = "You have already used this coupon.";
-            }
-            return quote;
-        }
-        return BuildQuote(studentName, couponCode);
-    }
+    public PriceQuote Quote(string? studentName, string? couponCode) => BuildQuote(studentName, couponCode);
 
     /// <summary>Works out the price of the student's cart. Bundle first, then the coupon.</summary>
     private PriceQuote BuildQuote(string? studentName, string? couponCode)
@@ -146,7 +132,7 @@ public class ShopService
         var code = couponCode?.Trim();
         if (!string.IsNullOrEmpty(code) && lines.Count > 0)
         {
-            var error = ApplyCoupon(code, quote, out var applied);
+            var error = ApplyCoupon(code, quote, student?.Id, out var applied);
             if (error is not null)
             {
                 quote.CouponRejected = true;
@@ -170,15 +156,21 @@ public class ShopService
         return quote;
     }
 
-    /// <summary>Checks the coupon and fills CouponDiscount on the lines it applies to. Returns an error text or null.</summary>
-    private string? ApplyCoupon(string code, PriceQuote quote, out Coupon? applied)
+    /// <summary>Checks the coupon and fills CouponDiscount on the lines it applies to. Returns an error text or null.
+    /// Every path (preview and checkout) goes through here, so the usage rules are enforced in one place.</summary>
+    private string? ApplyCoupon(string code, PriceQuote quote, int? studentId, out Coupon? applied)
     {
         applied = null;
         var lowerCode = code.ToLower();
         var coupon = _db.Coupons.FirstOrDefault(c => c.Code.ToLower() == lowerCode);
         if (coupon is null) return "Coupon not found.";
         if (coupon.ExpiresOn.Date < _clock.UtcNow.Date) return "This coupon has expired.";
-        if (coupon.UsedCount > coupon.MaxUses) return "This coupon has no uses left.";
+
+        // Refunded orders are not uses. The counter and the paid orders are both checked, and the higher one wins.
+        var paidUses = PaidOrdersWithCoupon(lowerCode).Count();
+        if (Math.Max(coupon.UsedCount, paidUses) >= coupon.MaxUses) return "This coupon has no uses left.";
+        if (studentId is not null && PaidOrdersWithCoupon(lowerCode).Any(o => o.StudentId == studentId.Value))
+            return "You have already used this coupon.";
 
         var afterBundle = quote.Lines.Sum(l => l.Price - l.BundleDiscount);
         if (afterBundle < coupon.MinOrderAmount)
@@ -215,10 +207,12 @@ public class ShopService
     {
         var student = _students.Find(studentName);
         if (student is null) return false;
-        var lowerCode = code.ToLower();
-        return _db.Orders.Any(o => o.StudentId == student.Id && o.Status == "Paid" && o.CouponCode != null &&
-            o.CouponCode.ToLower() == lowerCode);
+        return PaidOrdersWithCoupon(code.ToLower()).Any(o => o.StudentId == student.Id);
     }
+
+    /// <summary>Paid orders only. A refunded order gives the coupon back.</summary>
+    private IQueryable<Order> PaidOrdersWithCoupon(string lowerCode) =>
+        _db.Orders.Where(o => o.Status == "Paid" && o.CouponCode != null && o.CouponCode.ToLower() == lowerCode);
 
     // ---- Checkout and orders ----
 
