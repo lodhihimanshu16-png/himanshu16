@@ -115,3 +115,9 @@ frontend/
   src/components/           NavBar, CourseCard, ReviewsSection, QaSection
   src/api.js                every call to the backend
 ```
+
+## MCP server (read-only)
+
+`mcp-server/LearnHub.Mcp` is a .NET stdio MCP server exposing read-only LearnHub tools (`list_courses`, `list_refunds`, `find_refund_policy_violations`, `find_coupon_overuse`, `instructor_payout`, `list_at_risk_students`, `get_schema` and more). It is registered in `.mcp.json`.
+
+Set `LEARNHUB_DB_PASSWORD` (or a full `LEARNHUB_DB` connection string) in your environment before starting Claude Code. Host, port and user default to `127.0.0.1`, `3306` and `root`. A read-only MySQL user is recommended.
