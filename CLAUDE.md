@@ -46,7 +46,8 @@ A commit refreshes the "Recent commits" block below and amends it into that comm
 ## Recent commits
 
 <!-- AUTO:RECENT-COMMITS:START -->
-- (this commit) Add coupon audit session handoff
+- (this commit) Add learner completion and drop-off analysis
+- 9831b88 Add coupon audit session handoff
 - 9e8ea77 Add payout reconciliation report
 - dfa2c3c Exclude refunded orders from payout report
 - 6eb2916 Add payout report tests for refunded orders
@@ -55,5 +56,4 @@ A commit refreshes the "Recent commits" block below and amends it into that comm
 - cfa8b00 Enforce coupon limit and once-per-student in ApplyCoupon
 - b4f6ede Add coupon audit findings
 - 2c68cda Add orchestrate and reflect commands
-- b386ed8 Add session-handoff command
 <!-- AUTO:RECENT-COMMITS:END -->
