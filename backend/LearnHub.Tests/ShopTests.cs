@@ -331,6 +331,83 @@ public class ShopTests
         Assert.Equal("Order not found.", env.Shop.RefundOrder(999).Error);
     }
 
+    // R18 regression: the 7-day window is measured from Order.CreatedAt, never from a touched UpdatedAt.
+    [Fact]
+    public void R18_Refund_WindowIgnoresUpdatedAt_SoATouchedOrderCannotBeRefundedLate()
+    {
+        using var env = new TestEnv();
+        env.Clock.Now = Today.AddDays(-8);
+        env.AddToCart("Asha", 2);
+        var orderId = env.Shop.Checkout("Asha", null).Order!.Id; // created 8 days ago
+
+        env.Clock.Now = Today;
+        var order = env.Db.Orders.First(o => o.Id == orderId);
+        order.UpdatedAt = Today; // simulate a recently touched order
+        env.Db.SaveChanges();
+
+        var result = env.Shop.RefundOrder(orderId);
+        Assert.Null(result.Order);
+        Assert.Contains("within 7 days", result.Error);
+        Assert.Equal("Paid", env.Db.Orders.First(o => o.Id == orderId).Status);
+    }
+
+    // R18: a multi-course order is refused when any one course is at 30% or more.
+    [Fact]
+    public void R18_Refund_MultiCourseOrder_IsRefused_WhenOneCourseIsAtThirtyPercent()
+    {
+        using var env = new TestEnv();
+        env.AddToCart("Asha", 2, 4);
+        var orderId = env.Shop.Checkout("Asha", null).Order!.Id;
+        env.CompleteLessons("Asha", 4, 2); // 40% of course 4
+        // course 2 stays at 0%
+
+        var result = env.Shop.RefundOrder(orderId);
+        Assert.Null(result.Order);
+        Assert.Contains("Data Analysis with SQL", result.Error);
+        Assert.Equal("Paid", env.Db.Orders.First(o => o.Id == orderId).Status);
+    }
+
+    // R18: a refused refund changes nothing at all.
+    [Fact]
+    public void R18_RefusedRefund_ChangesNothing()
+    {
+        using var env = new TestEnv();
+        env.AddToCart("Asha", 4, 2);
+        var orderId = env.Shop.Checkout("Asha", "WELCOME10").Order!.Id;
+        env.CompleteLessons("Asha", 4, 2); // 40%, so refused
+        var studentId = env.Students.Find("Asha")!.Id;
+        var enrollmentsBefore = env.Db.Enrollments.Count(e => e.StudentId == studentId);
+        var progressBefore = env.Db.LessonProgress.Count(p => p.StudentId == studentId);
+        var usesBefore = env.CouponUses("WELCOME10");
+        Assert.Equal(1, usesBefore);
+
+        Assert.NotNull(env.Shop.RefundOrder(orderId).Error);
+
+        Assert.Equal("Paid", env.Db.Orders.First(o => o.Id == orderId).Status);
+        Assert.Empty(env.Db.Refunds);
+        Assert.Equal(enrollmentsBefore, env.Db.Enrollments.Count(e => e.StudentId == studentId));
+        Assert.Equal(progressBefore, env.Db.LessonProgress.Count(p => p.StudentId == studentId));
+        Assert.Equal(2, env.Db.Enrollments.Count(e => e.StudentId == studentId && (e.CourseId == 2 || e.CourseId == 4)));
+        Assert.Equal(usesBefore, env.CouponUses("WELCOME10"));
+    }
+
+    // R18: exactly 7 days old with progress under 30% is allowed.
+    [Fact]
+    public void R18_Refund_ExactlySevenDaysOld_WithProgressUnderThirty_IsAllowed()
+    {
+        using var env = new TestEnv();
+        env.Clock.Now = Today.AddDays(-7);
+        env.AddToCart("Asha", 2);
+        var orderId = env.Shop.Checkout("Asha", null).Order!.Id;
+        env.CompleteLessons("Asha", 2, 1); // 25% of course 2
+
+        env.Clock.Now = Today;
+        var (order, error) = env.Shop.RefundOrder(orderId);
+
+        Assert.Null(error);
+        Assert.Equal("Refunded", order!.Status);
+    }
+
     // R19
     [Fact]
     public void R19_Refund_RemovesEnrollmentAndProgress_AndGivesBackTheCouponUse()
