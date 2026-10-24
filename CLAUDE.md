@@ -46,7 +46,8 @@ A commit refreshes the "Recent commits" block below and amends it into that comm
 ## Recent commits
 
 <!-- AUTO:RECENT-COMMITS:START -->
-- (this commit) Enforce coupon limit and once-per-student in ApplyCoupon
+- (this commit) Add coupon limit and once-per-student tests
+- cfa8b00 Enforce coupon limit and once-per-student in ApplyCoupon
 - b4f6ede Add coupon audit findings
 - 2c68cda Add orchestrate and reflect commands
 - b386ed8 Add session-handoff command
@@ -55,5 +56,4 @@ A commit refreshes the "Recent commits" block below and amends it into that comm
 - c94c83b Add refund policy tests
 - a183400 Enforce refund policy from order creation date via RefundPolicy
 - a879dd5 Add refund policy audit report
-- b4782f0 Add hooks that refresh CLAUDE.md after each commit
 <!-- AUTO:RECENT-COMMITS:END -->

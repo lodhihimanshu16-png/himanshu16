@@ -464,4 +464,123 @@ public class ShopTests
         Assert.Equal(17.85m, revenue.First(r => r.Instructor == "Sofia Alvarez").InstructorShare); // 70% of 25.50
         Assert.Equal(0m, revenue.First(r => r.Instructor == "Maya Rao").GrossSales);
     }
+
+    // R21a: a coupon with one use can be used once. The next student is refused at preview and at checkout.
+    [Fact]
+    public void R21a_OneUseCoupon_CanBeUsedOnce_ThenNobodyElseCanUseIt()
+    {
+        using var env = new TestEnv();
+        env.AddCoupon("ONCE", "Percent", 10, Today.AddDays(30), 1);
+        env.AddToCart("Asha", 2);
+        env.AddToCart("Ben", 3);
+
+        Assert.NotNull(env.Shop.Checkout("Asha", "ONCE").Order);
+
+        var quote = env.Shop.Quote("Ben", "ONCE");
+        Assert.True(quote.CouponRejected);
+        Assert.Equal("This coupon has no uses left.", quote.CouponMessage);
+
+        var (order, error) = env.Shop.Checkout("Ben", "ONCE");
+        Assert.Null(order);
+        Assert.Equal("This coupon has no uses left.", error);
+        Assert.Single(env.Db.Orders);
+    }
+
+    // R21b: a coupon at its limit is refused, and a coupon one use short of its limit still works.
+    [Fact]
+    public void R21b_Coupon_AtItsLimit_IsRefused_ButOneUseShortStillWorks()
+    {
+        using var env = new TestEnv();
+        env.AddCoupon("FULLTWO", "Percent", 10, Today.AddDays(30), 2, usedCount: 2);
+        env.AddCoupon("LASTONE", "Percent", 10, Today.AddDays(30), 2, usedCount: 1);
+        env.AddToCart("Asha", 2);
+
+        Assert.True(env.Shop.Quote("Asha", "FULLTWO").CouponRejected);
+        var (order, error) = env.Shop.Checkout("Asha", "FULLTWO");
+        Assert.Null(order);
+        Assert.Equal("This coupon has no uses left.", error);
+        Assert.Empty(env.Db.Orders);
+        Assert.Single(env.Shop.GetCart("Asha"));
+        Assert.Equal(2, env.CouponUses("FULLTWO"));
+
+        Assert.False(env.Shop.Quote("Asha", "LASTONE").CouponRejected);
+        Assert.NotNull(env.Shop.Checkout("Asha", "LASTONE").Order);
+        Assert.Equal(2, env.CouponUses("LASTONE"));
+    }
+
+    // R21c: paid orders count too, so a counter that says "no uses" cannot reopen a used-up coupon.
+    [Fact]
+    public void R21c_PaidOrders_CountEvenIfTheCounterSaysNoUsesLeft()
+    {
+        using var env = new TestEnv();
+        env.AddCoupon("ONCE", "Percent", 10, Today.AddDays(30), 1);
+        env.AddToCart("Asha", 2);
+        Assert.NotNull(env.Shop.Checkout("Asha", "ONCE").Order);
+
+        var coupon = env.Db.Coupons.First(c => c.Code == "ONCE");
+        coupon.UsedCount = 0; // the counter is out of step with the paid orders
+        env.Db.SaveChanges();
+
+        env.AddToCart("Ben", 3);
+        Assert.True(env.Shop.Quote("Ben", "ONCE").CouponRejected);
+        Assert.Null(env.Shop.Checkout("Ben", "ONCE").Order);
+        Assert.Single(env.Db.Orders);
+    }
+
+    // R21d: a refund gives the coupon slot back, and the next student can take it.
+    [Fact]
+    public void R21d_RefundGivesTheCouponSlotBack_ForTheNextStudent()
+    {
+        using var env = new TestEnv();
+        env.AddCoupon("ONCE", "Percent", 10, Today.AddDays(30), 1);
+        env.AddToCart("Asha", 2);
+        var orderId = env.Shop.Checkout("Asha", "ONCE").Order!.Id;
+        Assert.NotNull(env.Shop.RefundOrder(orderId).Order);
+
+        env.AddToCart("Ben", 3);
+        env.AddToCart("Cara", 4);
+        Assert.NotNull(env.Shop.Checkout("Ben", "ONCE").Order);
+
+        // Ben's order now uses the single slot, so Cara is refused.
+        Assert.Equal("This coupon has no uses left.", env.Shop.Checkout("Cara", "ONCE").Error);
+        Assert.Single(env.Shop.GetCart("Cara"));
+    }
+
+    // R21e: the once-per-student rule holds at checkout, even when there was no preview first.
+    [Fact]
+    public void R21e_Checkout_RefusesASecondUseOfTheCoupon_WithoutAPreview()
+    {
+        using var env = new TestEnv();
+        env.AddToCart("Asha", 2);
+        Assert.NotNull(env.Shop.Checkout("Asha", "WELCOME10").Order);
+
+        env.AddToCart("Asha", 3);
+        var (order, error) = env.Shop.Checkout("Asha", "WELCOME10");
+        Assert.Null(order);
+        Assert.Equal("You have already used this coupon.", error);
+
+        // The code is matched without regard to case, so this is refused too.
+        (order, error) = env.Shop.Checkout("Asha", "welcome10");
+        Assert.Null(order);
+        Assert.Equal("You have already used this coupon.", error);
+
+        Assert.Single(env.Db.Orders);
+        Assert.Equal(new[] { 3 }, env.Shop.GetCart("Asha").Select(i => i.CourseId));
+        Assert.Equal(1, env.CouponUses("WELCOME10"));
+    }
+
+    // R21f: a refunded order does not stop the same student using the coupon again.
+    [Fact]
+    public void R21f_RefundedOrder_DoesNotStopTheSameStudentUsingTheCouponAgain()
+    {
+        using var env = new TestEnv();
+        env.AddToCart("Asha", 2);
+        var orderId = env.Shop.Checkout("Asha", "WELCOME10").Order!.Id;
+        Assert.NotNull(env.Shop.RefundOrder(orderId).Order);
+
+        Assert.False(env.Shop.HasUsedCoupon("Asha", "WELCOME10"));
+        env.AddToCart("Asha", 3);
+        Assert.False(env.Shop.Quote("Asha", "WELCOME10").CouponRejected);
+        Assert.NotNull(env.Shop.Checkout("Asha", "WELCOME10").Order);
+    }
 }
