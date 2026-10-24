@@ -12,7 +12,7 @@ LearnHub is an e-learning platform (courses, quizzes, shop with cart/coupons/ord
 - `mcp-server/LearnHub.Mcp` – read-only stdio MCP server over the same MySQL database, registered in `.mcp.json`
 - `db/` – `schema.sql`, `seed.sql`, and reset scripts
 
-`EXERCISES.md` holds the Day 5 tasks (refund audit, coupon abuse, etc.). Treat "today" as 2026-10-01; the seed data covers the twelve months before it.
+`EXERCISES.md` holds the Day 5 tasks (refund audit, coupon abuse, etc.). Treat "today" as 2026-10-01; the seed data covers the twelve months before it. Audit write-ups live in `reports/` (for example `reports/reviews.md` for the review and prerequisite audit).
 
 ## Commands
 
@@ -26,14 +26,18 @@ cd backend && dotnet test --filter "FullyQualifiedName~ShopTests"   # one class 
 
 Environment variables:
 - `LEARNHUB_DB` – full connection string; overrides `appsettings.json` (API) and the host/port/user/password vars (MCP server).
-- `LEARNHUB_DB_HOST/PORT/USER/PASSWORD` – used by `db/reset.*` and the MCP server (defaults `127.0.0.1`, `3306`, `root`; the README gives password `LearnHub!23`).
+- `LEARNHUB_DB_HOST/PORT/USER/PASSWORD` – used by `db/reset.*` and the MCP server (defaults `127.0.0.1`, `3306`, `root`; the README gives password `LearnHub!23` and `.mcp.json` defaults to `Root123$`, so check `LEARNHUB_DB_PASSWORD` if a connection is refused).
 - `LEARNHUB_NOW=2026-10-01T12:00:00Z` – makes the API and MCP server treat that instant as "now". Set it, otherwise deadlines and refund windows are judged against the real date.
 
 ## Architecture
 
 **Backend layering:** `Program.cs` registers every service as scoped and calls one `Map*Endpoints()` per area. `Endpoints/*` only map URLs to services; business rules live in `Services/*` (DTOs in `Services/Dtos.cs`, `IClock`/`StudentDirectory` in `Services/Infrastructure.cs`). `Reports/PayoutReportBuilder` builds the monthly payout report. `Data/LearnHubDbContext` and `Models/Entities.cs` map the tables. Time must come from the injected `IClock`, never `DateTime.Now`, so tests and `LEARNHUB_NOW` can control it. Students are identified by name via `StudentDirectory` (no auth).
 
-**Tests:** `TestEnv` builds an in-memory SQLite database from the small fixed set in `TestData` and wires every service to it with a `FakeClock`; no MySQL needed. `CustomWebApplicationFactory` is used for HTTP-level tests (`ApiTests`). New services must be added to `TestEnv` as well as `Program.cs`.
+**Rules to preserve:**
+- Reviews: `ReviewService.AddReview` looks the student up with `StudentDirectory.Find` (never `GetOrCreate`) and requires an enrolment in the course; otherwise the API returns 403. Don't create students on the review path.
+- Prerequisites: `EnrollmentService.PrerequisiteError` is the single check. `Enroll` calls it itself, so every enrolment route is covered (free `EnrollFree` and paid `ShopService.Checkout`), and `AddToCart` and `Checkout` call it before any order or payment is created. Don't add an enrolment path that bypasses `Enroll`.
+
+**Tests:** `TestEnv` builds an in-memory SQLite database from the small fixed set in `TestData` and wires every service to it with a `FakeClock`; no MySQL needed. `CustomWebApplicationFactory` is used for HTTP-level tests (`ApiTests`). New services must be added to `TestEnv` as well as `Program.cs`. `Enroll` refuses a course whose prerequisite is unfinished, so tests that enrol into such a course must finish the prerequisite first (`TestEnv.CompleteLessons`); see `PrerequisiteTests` and `ReviewTests`.
 
 **Frontend:** one file per page in `src/pages`, shared components in `src/components`, and every backend call goes through `src/api.js`.
 
@@ -46,7 +50,8 @@ A commit refreshes the "Recent commits" block below and amends it into that comm
 ## Recent commits
 
 <!-- AUTO:RECENT-COMMITS:START -->
-- (this commit) Add reviews and prerequisites audit report
+- (this commit) Document review and prerequisite rules in CLAUDE.md
+- eae41b6 Add reviews and prerequisites audit report
 - 7523288 Add prerequisite enforcement tests
 - 83918db Enforce prerequisites on every enrolment path
 - 3785387 Add review enrolment tests
@@ -55,5 +60,4 @@ A commit refreshes the "Recent commits" block below and amends it into that comm
 - d142ca7 Add at-risk student call list
 - 6377f64 Add learner completion and drop-off analysis
 - 9831b88 Add coupon audit session handoff
-- 9e8ea77 Add payout reconciliation report
 <!-- AUTO:RECENT-COMMITS:END -->
