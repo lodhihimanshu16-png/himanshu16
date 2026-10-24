@@ -71,6 +71,8 @@ Added in commit `c94c83b`.
 - **Full backend suite:** 94 passed, 0 failed.
 - **Manual check against the running app:** a compliant refund succeeded (HTTP 200). A refund after 7 days and a refund at 33% progress were both refused (HTTP 400, with the expected messages). A repeat refund returned HTTP 409. Progress shown in the app matched the database for all 2,956 enrolments. The local database was restored afterwards.
 
+**Browser tests (Playwright).** Eight end-to-end tests in `frontend/e2e/` cover the My Orders refund button (compliant refund, refused at 30% progress, refused after 7 days) and the progress bars. Run them with `cd frontend && npm run e2e`. Prerequisites: MySQL running with the seed data loaded (`LEARNHUB_DB_PASSWORD` defaults to `Root123$`), and Chromium installed with `npx playwright install chromium`. The run starts the API and Vite itself. The refund tests use fresh students, so they leave orders behind until `bash db/reset.sh` is run.
+
 ## Follow-up (not applied)
 
 A database trigger that rejects refunds breaking the policy has been considered but deliberately not applied. The seed file `db/seed.sql` contains these nine historical violations, so a trigger would cause the seed to fail on load. Any trigger should be added only after the seed data is corrected.

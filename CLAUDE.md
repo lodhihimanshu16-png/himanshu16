@@ -46,7 +46,8 @@ A commit refreshes the "Recent commits" block below and amends it into that comm
 ## Recent commits
 
 <!-- AUTO:RECENT-COMMITS:START -->
-- (this commit) Complete refund audit report with fix and test details
+- (this commit) Add Playwright browser tests for refunds and progress bars
+- 615b256 Complete refund audit report with fix and test details
 - c94c83b Add refund policy tests
 - a183400 Enforce refund policy from order creation date via RefundPolicy
 - a879dd5 Add refund policy audit report
@@ -55,5 +56,4 @@ A commit refreshes the "Recent commits" block below and amends it into that comm
 - 17b4789 Restore root user and LEARNHUB_NOW in .mcp.json
 - 0b711aa Set .mcp.json database defaults
 - af8eeb2 Register LearnHub MCP server in .mcp.json
-- a80db5a Add read-only LearnHub MCP server (.NET)
 <!-- AUTO:RECENT-COMMITS:END -->
