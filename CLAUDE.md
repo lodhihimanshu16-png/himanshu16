@@ -46,7 +46,8 @@ A commit refreshes the "Recent commits" block below and amends it into that comm
 ## Recent commits
 
 <!-- AUTO:RECENT-COMMITS:START -->
-- (this commit) Add payout reconciliation report
+- (this commit) Add coupon audit session handoff
+- 9e8ea77 Add payout reconciliation report
 - dfa2c3c Exclude refunded orders from payout report
 - 6eb2916 Add payout report tests for refunded orders
 - bd09623 Complete coupon audit report with cause, fix and test details
@@ -55,5 +56,4 @@ A commit refreshes the "Recent commits" block below and amends it into that comm
 - b4f6ede Add coupon audit findings
 - 2c68cda Add orchestrate and reflect commands
 - b386ed8 Add session-handoff command
-- dd389a2 Add Playwright browser tests for refunds and progress bars
 <!-- AUTO:RECENT-COMMITS:END -->
