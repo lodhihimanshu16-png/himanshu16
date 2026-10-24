@@ -15,6 +15,7 @@ public static class ReviewEndpoints
                 return error switch
                 {
                     "Course not found." => Results.NotFound(),
+                    "You must be enrolled in this course to review it." => Results.Json(new { error }, statusCode: 403),
                     "You have already reviewed this course." => Results.Conflict(new { error }),
                     _ => Results.BadRequest(new { error })
                 };

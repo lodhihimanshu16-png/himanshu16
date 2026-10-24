@@ -27,7 +27,10 @@ public class ReviewService
         var text = comment?.Trim() ?? "";
         if (text.Length > 1000) return (null, "comment must be 1000 characters or fewer.");
 
-        var student = _students.GetOrCreate(name);
+        var student = _students.Find(name);
+        if (student is null || !_db.Enrollments.Any(e => e.StudentId == student.Id && e.CourseId == courseId))
+            return (null, "You must be enrolled in this course to review it.");
+
         if (_db.Reviews.Any(r => r.CourseId == courseId && r.StudentId == student.Id))
             return (null, "You have already reviewed this course.");
 

@@ -46,7 +46,8 @@ A commit refreshes the "Recent commits" block below and amends it into that comm
 ## Recent commits
 
 <!-- AUTO:RECENT-COMMITS:START -->
-- (this commit) Document at-risk student selection method
+- (this commit) Require enrolment to review a course
+- e3d21f7 Document at-risk student selection method
 - d142ca7 Add at-risk student call list
 - 6377f64 Add learner completion and drop-off analysis
 - 9831b88 Add coupon audit session handoff
@@ -55,5 +56,4 @@ A commit refreshes the "Recent commits" block below and amends it into that comm
 - 6eb2916 Add payout report tests for refunded orders
 - bd09623 Complete coupon audit report with cause, fix and test details
 - 332db4a Add coupon limit and once-per-student tests
-- cfa8b00 Enforce coupon limit and once-per-student in ApplyCoupon
 <!-- AUTO:RECENT-COMMITS:END -->
