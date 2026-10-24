@@ -46,7 +46,8 @@ A commit refreshes the "Recent commits" block below and amends it into that comm
 ## Recent commits
 
 <!-- AUTO:RECENT-COMMITS:START -->
-- (this commit) Add orchestrate and reflect commands
+- (this commit) Add coupon audit findings
+- 2c68cda Add orchestrate and reflect commands
 - b386ed8 Add session-handoff command
 - dd389a2 Add Playwright browser tests for refunds and progress bars
 - 615b256 Complete refund audit report with fix and test details
@@ -55,5 +56,4 @@ A commit refreshes the "Recent commits" block below and amends it into that comm
 - a879dd5 Add refund policy audit report
 - b4782f0 Add hooks that refresh CLAUDE.md after each commit
 - 3bb3c26 Add CLAUDE.md
-- 17b4789 Restore root user and LEARNHUB_NOW in .mcp.json
 <!-- AUTO:RECENT-COMMITS:END -->
